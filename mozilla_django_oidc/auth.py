@@ -245,7 +245,11 @@ class OIDCAuthenticationBackend(ModelBackend):
             timeout=self.get_settings('OIDC_TIMEOUT', None),
             proxies=self.get_settings('OIDC_PROXY', None))
         user_response.raise_for_status()
-        return user_response.json()
+        msg = user_response.text
+        utf8 = msg.encode('utf-8')
+        jws = JWS.from_compact(utf8)
+        jwsjson = json.loads(jws.payload)
+        return jwsjson
 
     def authenticate(self, request, **kwargs):
         """Authenticates a user based on the OIDC code flow."""
